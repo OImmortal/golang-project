@@ -12,3 +12,9 @@ CREATE TABLE usuarios (
     senha varchar(50) not null,
     criadoEm timestamp default current_timestamp()
 )
+
+USE mysql;
+
+CREATE USER 'golang'@'localhost' IDENTIFIED BY 'admin';
+
+GRANT ALL PRIVILEGES ON devbook.* TO 'golang'@'localhost';

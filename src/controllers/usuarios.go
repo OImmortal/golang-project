@@ -1,11 +1,14 @@
 package controllers
 
 import (
+	"api/src/auth"
 	"api/src/database"
 	"api/src/models"
 	"api/src/repositorio"
 	"api/src/respostas"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -96,7 +99,6 @@ func BuscarUsuario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respostas.JSON(w, http.StatusOK, usuario)
-
 }
 
 func AutalizarUsuario(w http.ResponseWriter, r *http.Request) {
@@ -105,6 +107,19 @@ func AutalizarUsuario(w http.ResponseWriter, r *http.Request) {
 	usuariosId, erro := strconv.ParseUint(parametros["usuarioId"], 10, 64)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	usuarioIdtoken, erro := auth.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnauthorized, erro)
+		return
+	}
+
+	fmt.Println(usuariosId)
+	fmt.Println(usuarioIdtoken)
+	if usuariosId != usuarioIdtoken {
+		respostas.Erro(w, http.StatusForbidden, errors.New("Não é possível alterar dados de outro usuário"))
 		return
 	}
 
@@ -141,7 +156,6 @@ func AutalizarUsuario(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respostas.JSON(w, http.StatusOK, nil)
-
 }
 
 func DeletarUsuario(w http.ResponseWriter, r *http.Request) {
@@ -149,6 +163,17 @@ func DeletarUsuario(w http.ResponseWriter, r *http.Request) {
 	usuarioId, erro := strconv.ParseUint(parametros["usuarioId"], 10, 64)
 	if erro != nil {
 		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	usuarioIdToken, erro := auth.ExtrairUsuarioID(r)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	if usuarioId != usuarioIdToken {
+		respostas.Erro(w, http.StatusForbidden, errors.New("Não é possível deletar outros usuários"))
 		return
 	}
 
